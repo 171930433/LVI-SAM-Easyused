@@ -1,6 +1,7 @@
 #include "utility.h"
 #include "lvi_sam/cloud_info.h"
-
+#include <pcl/filters/filter.h>
+#include <pcl/filters/impl/filter.hpp>
 // Velodyne
 struct PointXYZIRT
 {
@@ -186,6 +187,17 @@ public:
 
         // convert cloud
         pcl::fromROSMsg(currentCloudMsg, *laserCloudIn);
+
+
+        if (laserCloudIn->is_dense == false)
+        {
+            pcl::PointCloud<PointXYZIRT>::Ptr cloud_out(new pcl::PointCloud<PointXYZIRT>);
+            std::vector<int> indices;
+            pcl::removeNaNFromPointCloud(*laserCloudIn, *cloud_out, indices);
+            laserCloudIn->is_dense = true;
+
+            laserCloudIn = cloud_out;
+        }
 
         // check dense flag
         if (laserCloudIn->is_dense == false)
